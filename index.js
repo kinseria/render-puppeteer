@@ -1,38 +1,35 @@
-const express = require('express');
-const puppeteer = require('puppeteer');
+const express = require("express");
+const puppeteer = require("puppeteer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.post('/automate', async (req, res) => {
-  const { text } = req.body;
-
+app.post("/automate", async (req, res) => {
   try {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
+
     const page = await browser.newPage();
+    await page.goto("https://www.w3schools.com/html/html_forms.asp", {
+      waitUntil: "networkidle2"
+    });
 
-    await page.goto('https://your-second-site.com');
+    // Fill in fields on the demo form
+    await page.type('input[name="firstname"]', "John");
+    await page.type('input[name="lastname"]', "Doe");
 
-    // Replace selectors with actual ones from your site
-    await page.type('#textField', text || 'Default Text');
-    await page.click('#generateButton');
-
-    // Wait for the video to be generated
-    await page.waitForSelector('video');
-
-    // Optionally, click the upload button
-    await page.click('#uploadButton');
+    // Click the submit button (it just reloads the form in this demo)
+    await page.click('input[type="submit"]');
 
     await browser.close();
-    res.status(200).send('Automation completed successfully.');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Automation failed.');
+    res.send("Demo site automated successfully.");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Automation failed.");
   }
 });
 
